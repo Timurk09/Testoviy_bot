@@ -1,0 +1,6 @@
+@Tst_bot_HostAddress = http://localhost:5155
+
+GET {{Tst_bot_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
