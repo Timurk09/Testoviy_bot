@@ -1,41 +1,81 @@
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot;
 using Telegram.Bot.Types;
-using Tst_bot.Database;
-using Tst_bot.Models;
-
+using Tst_bot.Services;
 namespace Tst_bot.Controllers;
 
 [ApiController]
 [Route("api/bot")]
 public class TgController:ControllerBase
 {
-    readonly AppDbcontext _context;
-    readonly ITelegramBotClient _botClient;
+    private readonly ITelegramBotClient  _botClient;
+    private readonly UserService _userService;
+    private readonly ProductService _productService;
 
-    public TgController(AppDbcontext context, ITelegramBotClient botClient)
+    public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService)
     {
-        _context = context;
         _botClient = botClient;
+        _userService = userService;
+        _productService = productService;
     }
 
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] Update update)
     {
         if (update.Message == null) return Ok();
-
         var message = update.Message;
         var chatId = message.Chat.Id;
-        var text = message.Text?.ToLower() ?? "";
-        
-        if (text == "/start")
+        var text = message.Text?.Trim().ToLower() ?? "";
+        try
         {
-            await _botClient.SendMessage(chatId, "Привет! Бот запущен через webhook.");
+            await (text switch
+            {
+                "/start" => HandleStart(chatId, message.From),
+                "/balance" => HandleBalance(chatId),
+                "/shop" => HandleShop(chatId),
+
+                _ => _botClient.SendMessage(chatId,
+                    "Неизвестная команда.\n\n" +
+                    "Доступные команды:\n/start — начать\n/balance — баланс\n/shop — магазин")
+            });
         }
-        else
+        catch (Exception ex)
         {
-            await _botClient.SendMessage(chatId, $"Ты написал: {message.Text}");
+            Console.WriteLine(ex);
+            await _botClient.SendMessage(chatId, "Ошибка сервера, попробуй позже");
         }
         return Ok();
+    }
+
+    private async Task HandleStart(long chatId, User? from)
+    {
+        var user = await _userService.GetOrCreateUserAsync(chatId, from?.FirstName, from?.Username);
+        await _botClient.SendMessage(chatId,
+            $"Привет, {user.FirstName}!\n\n" +
+            $"Баланс: **{user.Balance}** руб\n\n" +
+            "Команды: /balance | /shop");
+    }
+
+    private async Task HandleBalance(long chatId)
+    {
+        var user = await _userService.GetUserAsync(chatId);
+        if (user == null)
+        {
+            await _botClient.SendMessage(chatId, "сначала напиши /start");
+            return;
+        }
+        await _botClient.SendMessage(chatId, $"Твой баланс: **{user.Balance}** руб");
+    }
+    
+    private  async Task HandleShop(long chatId)
+    {
+        var products = await _productService.GetAvaibleProductsAsync();
+        if (products.Count == 0) { await _botClient.SendMessage(chatId, "Магазин пока пустой"); return; }
+        var sb = "🛒 **Магазин**\n\n";
+        foreach (var p in products)
+        {
+            sb += $"• {p.Name} — **{p.Price}** руб.\n   {p.Description}\n\n";
+        }
+        await _botClient.SendMessage(chatId, sb);
     }
 }

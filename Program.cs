@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Tst_bot.Database;
-//using NgrokAspNetCore;
 using Telegram.Bot;
+using Tst_bot.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +20,9 @@ builder.Services.AddDbContext<AppDbcontext>(options =>
     
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-//builder.Services.AddNgrok();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<ProductService>();
+
 var botToken = builder.Configuration["Telegram:BotToken"]
     ?? throw new InvalidOperationException("Telegram:BotToken is not set!");
 builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken!));
@@ -32,6 +34,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-//app.UseHttpsRedirection();
+
 app.MapControllers();
 app.Run();
