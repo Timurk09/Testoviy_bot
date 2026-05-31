@@ -15,8 +15,8 @@ if (builder.Environment.IsProduction())
 }
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<AppDbcontext>(options => 
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbcontext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
     
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
