@@ -29,6 +29,12 @@ builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbcontext>();
+    db.Database.Migrate(); 
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
