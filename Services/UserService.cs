@@ -26,6 +26,8 @@ public class UserService
                 Balance = 1000,
                 LastMoneyIssued = DateTime.UtcNow
             };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
         }
 
         return user;
