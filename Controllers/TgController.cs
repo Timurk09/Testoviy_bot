@@ -11,12 +11,14 @@ public class TgController:ControllerBase
     private readonly ITelegramBotClient  _botClient;
     private readonly UserService _userService;
     private readonly ProductService _productService;
+    private readonly BalanceService _balanceService;
 
-    public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService)
+    public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService, BalanceService balanceService)
     {
         _botClient = botClient;
         _userService = userService;
         _productService = productService;
+        _balanceService = balanceService;
     }
 
     [HttpPost]
@@ -33,6 +35,8 @@ public class TgController:ControllerBase
                 "/start" => HandleStart(chatId, message.From),
                 "/balance" => HandleBalance(chatId),
                 "/shop" => HandleShop(chatId),
+                "/income" => HandleIncome(chatId),
+
 
                 _ => _botClient.SendMessage(chatId,
                     "Неизвестная команда.\n\n" +
@@ -79,5 +83,18 @@ public class TgController:ControllerBase
             sb += $"• {p.Name} — **{p.Price}** руб.\n   {p.Description}\n\n";
         }
         await _botClient.SendMessage(chatId, sb);
+    }
+
+    private async Task HandleIncome(long chatId)
+    {
+        var result = await _balanceService.IssueDailyMoneyAsync(chatId);
+        if (result == -1)
+        {
+            await _botClient.SendMessage(chatId, "Деньги уже выдавали недавно. Следующая выдача через пару часов.");
+        }
+        else
+        {
+            await _botClient.SendMessage(chatId, $"✅ Выдано **{result}** руб. на баланс!");
+        }
     }
 }
