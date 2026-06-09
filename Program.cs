@@ -23,9 +23,10 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<BalanceService>();
+builder.Services.AddScoped<PurchaseService>();
 
 var botToken = builder.Configuration["Telegram:BotToken"]
-    ?? throw new InvalidOperationException("Telegram:BotToken is not set!");
+               ?? throw new InvalidOperationException("Telegram:BotToken is not set!");
 builder.Services.AddSingleton<ITelegramBotClient>(new TelegramBotClient(botToken!));
 
 var app = builder.Build();

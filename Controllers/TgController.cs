@@ -12,13 +12,15 @@ public class TgController:ControllerBase
     private readonly UserService _userService;
     private readonly ProductService _productService;
     private readonly BalanceService _balanceService;
+    public readonly PurchaseService _purchaseService;
 
-    public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService, BalanceService balanceService)
+    public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService, BalanceService balanceService, PurchaseService purchaseService)
     {
         _botClient = botClient;
         _userService = userService;
         _productService = productService;
         _balanceService = balanceService;
+        _purchaseService = purchaseService;
     }
 
     [HttpPost]
@@ -36,7 +38,7 @@ public class TgController:ControllerBase
                 "/balance" => HandleBalance(chatId),
                 "/shop" => HandleShop(chatId),
                 "/income" => HandleIncome(chatId),
-
+                "/buy" => HandleBuy(chatId, message.Text),
 
                 _ => _botClient.SendMessage(chatId,
                     "Неизвестная команда.\n\n" +
@@ -96,5 +98,18 @@ public class TgController:ControllerBase
         {
             await _botClient.SendMessage(chatId, $"✅ Выдано **{result}** руб. на баланс!");
         }
+    }
+
+    private async Task HandleBuy(long chatId, string text)
+    {
+        var parts = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length < 2 || !int.TryParse(parts[1], out int productId))
+        {
+            await _botClient.SendMessage(chatId, "Использование: /buy <id_товара> [количество]");
+            return;
+        }
+        int quantity = parts.Length > 2 && int.TryParse(parts[2], out int q) ? q : 1;
+        var result = await _purchaseService.BuyProductAsync(chatId, productId, quantity);
+        await _botClient.SendMessage(chatId, result);
     }
 }
