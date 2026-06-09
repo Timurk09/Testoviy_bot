@@ -33,6 +33,8 @@ public class UserService
 
     public async Task<User?> GetUserAsync(long telegramId)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+        return await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
     }
 }

@@ -64,7 +64,9 @@ public class TgController:ControllerBase
             await _botClient.SendMessage(chatId, "сначала напиши /start");
             return;
         }
-        await _botClient.SendMessage(chatId, $"Твой баланс: **{user.Balance}** руб");
+        await _botClient.SendMessage(chatId,
+            $"Твой баланс: **{user.Balance}** руб",
+            parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
     }
     
     private  async Task HandleShop(long chatId)
