@@ -26,14 +26,14 @@ public class BalanceService
         const decimal amount = 500;
         user.Balance += amount;
         user.LastMoneyIssued = now;
-        var Transaction = new Transaction
+        var transaction = new Transaction
         {
             UserId = user.Id,
             Type = "Income",
             Amount = amount,
             Comment = "ежедневная выдача"
         };
-        _context.Transactions.Add(Transaction); 
+        _context.Transactions.Add(transaction); 
         await _context.SaveChangesAsync();
         return amount;
     }
