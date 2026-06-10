@@ -42,7 +42,7 @@ public class TgController:ControllerBase
 
                 _ => _botClient.SendMessage(chatId,
                     "Неизвестная команда.\n\n" +
-                    "Доступные команды:\n/start — начать\n/balance — баланс\n/shop — магазин")
+                    "Доступные команды:\n/start — начать\n/balance — баланс\n/shop — магазин\n/income - получить деньги\n/buy - купить товар")
             });
         }
         catch (Exception ex)
@@ -59,7 +59,7 @@ public class TgController:ControllerBase
         await _botClient.SendMessage(chatId,
             $"Привет, {user.FirstName}!\n\n" +
             $"Баланс: **{user.Balance}** руб\n\n" +
-            "Команды: /balance | /shop");
+            "Команды: /balance | /shop | /income | /buy");
     }
 
     private async Task HandleBalance(long chatId)
