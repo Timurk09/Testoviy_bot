@@ -23,7 +23,7 @@ public class BalanceService
         {
             return -1;
         }
-        const decimal amount = 500;
+        const decimal amount = 5000;
         user.Balance += amount;
         user.LastMoneyIssued = now;
         var transaction = new Transaction

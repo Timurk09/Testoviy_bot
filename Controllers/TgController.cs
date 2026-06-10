@@ -12,7 +12,7 @@ public class TgController:ControllerBase
     private readonly UserService _userService;
     private readonly ProductService _productService;
     private readonly BalanceService _balanceService;
-    public readonly PurchaseService _purchaseService;
+    private readonly PurchaseService _purchaseService;
 
     public TgController(ITelegramBotClient botClient, UserService userService, ProductService productService, BalanceService balanceService, PurchaseService purchaseService)
     {
@@ -105,11 +105,28 @@ public class TgController:ControllerBase
         var parts = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2 || !int.TryParse(parts[1], out int productId))
         {
-            await _botClient.SendMessage(chatId, "Использование: /buy <id_товара> [количество]");
+            await _botClient.SendMessage(chatId, "❌ Использование: `/buy <id_товара> [количество]`\nПример: `/buy 1 3`", parseMode: Telegram.Bot.Types.Enums.ParseMode.Markdown);
             return;
         }
-        int quantity = parts.Length > 2 && int.TryParse(parts[2], out int q) ? q : 1;
-        var result = await _purchaseService.BuyProductAsync(chatId, productId, quantity);
-        await _botClient.SendMessage(chatId, result);
+        int quantity = 1;
+        if (parts.Length >= 3 && int.TryParse(parts[2], out int parsedQuantity))
+        {
+            quantity = parsedQuantity;
+        }
+        if (quantity <= 0)
+        {
+            await _botClient.SendMessage(chatId, "❌ Количество товара должно быть больше 0!");
+            return;
+        }
+        try
+        {
+            var result = await _purchaseService.BuyProductAsync(chatId, productId, quantity);
+            await _botClient.SendMessage(chatId, result);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при покупке: {ex}");
+            await _botClient.SendMessage(chatId, "❌ Произошла ошибка на сервере при оформлении покупки.");
+        }
     }
 }
