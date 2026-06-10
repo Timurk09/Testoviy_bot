@@ -38,7 +38,7 @@ public class TgController:ControllerBase
                 "/balance" => HandleBalance(chatId),
                 "/shop" => HandleShop(chatId),
                 "/income" => HandleIncome(chatId),
-                "/buy" => HandleBuy(chatId, message.Text),
+                string t when t.StartsWith("/buy") => HandleBuy(chatId, message.Text),
 
                 _ => _botClient.SendMessage(chatId,
                     "Неизвестная команда.\n\n" +
